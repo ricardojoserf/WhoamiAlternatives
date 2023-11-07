@@ -1,6 +1,10 @@
-# WhoamiAlternatives
+# Alternatives to whoami
 
-## Method 1 (PRTL_USER_PROCESS_PARAMETERS)
+Some experiments to retrieve the current username without calling whoami.exe or similar binaries.
+
+## Method 1: PRTL_USER_PROCESS_PARAMETERS
+
+Get the environment variables from the PEB structure and parse it to find the username.
 
 - Function [NtQueryInformationProcess](https://learn.microsoft.com/en-us/windows/win32/api/winternl/nf-winternl-ntqueryinformationprocess) returns a "PROCESS_BASIC_INFORMATION" structure containing a pointer to the PEB base address.
 
@@ -12,8 +16,13 @@
 
 ![esquema](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/stealthyenv/Screenshot_0.png)
 
+![img](https://github.com/ricardojoserf/ricardojoserf.github.io/blob/master/images/whoamialternatives/Screenshot_1.png?raw=true)
 
-## Method 2 (LookupAccountSid)
+------------------------------------------------
+
+## Method 2: LookupAccountSid
+
+Get access to a token, find the user's SID in string format and translate it using the function LookupAccountSid.
 
 - Function [NtOpenProcessToken](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntopenprocesstoken) creates an access token associated with the current process.
 
@@ -23,8 +32,15 @@
 
 - Function [LookupAccountSid](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-lookupaccountsida) takes the SID in string format and returns the username. 
 
+![esquema](https://github.com/ricardojoserf/ricardojoserf.github.io/blob/master/images/whoamialternatives/LookupAccountSid_esquema.png?raw=true)
 
-## Method 3 (LsaLookupSids)
+![img](https://github.com/ricardojoserf/ricardojoserf.github.io/blob/master/images/whoamialternatives/Screenshot_2.png?raw=true)
+
+------------------------------------------------
+
+## Method 3: LsaLookupSids
+
+Get acccess to a token and a Policy object and get the username with the function LsaLookupSids. 
 
 - Functions NtOpenProcessToken and NtQueryInformationToken are used like in method 2, return a pointer "TokenInformation" with the user's SID in binary format. 
 
@@ -32,3 +48,12 @@
 
 - Function [LsaLookupSids](https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-lsalookupsids) takes a pointer to the SID and returns an structure LSA_TRANSLATED_NAME containing the username.
 
+![esquema](https://github.com/ricardojoserf/ricardojoserf.github.io/blob/master/images/whoamialternatives/LsaLookupSids_esquema.drawio.png?raw=true)
+
+![img](https://github.com/ricardojoserf/ricardojoserf.github.io/blob/master/images/whoamialternatives/Screenshot_3.png?raw=true)
+
+------------------------------------------------
+
+### Inspiration
+
+[vx-underground's memes account](https://twitter.com/vxunderground)
