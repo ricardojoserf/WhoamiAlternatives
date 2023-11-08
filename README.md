@@ -2,6 +2,9 @@
 
 Some experiments to retrieve the current username without calling whoami.exe or similar binaries.
 
+
+------------------------------------------------
+
 ## Method 1: PRTL_USER_PROCESS_PARAMETERS
 
 Get the environment variables from the PEB structure and parse it to find the username.
@@ -54,7 +57,7 @@ Get acccess to a token and a Policy object and get the username with the functio
 
 ------------------------------------------------
 
-## Method 4: 
+## Method 4: NamedPipe
 
 Create a named pipe and a secondary thread, write and read from the named pipe and get the username with the function NpGetUsername. 
 
