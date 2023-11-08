@@ -62,6 +62,7 @@ Create a named pipe and a secondary thread, write and read from the named pipe a
 
 ![img](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/whoamialternatives/Screenshot_4.png)
 
+------------------------------------------------
 
 ### Source
 
