@@ -54,6 +54,15 @@ Get acccess to a token and a Policy object and get the username with the functio
 
 ------------------------------------------------
 
-### Inspiration
+## Method 4: 
 
-[vx-underground's memes account](https://twitter.com/vxunderground)
+Create a named pipe and a secondary thread, write and read from the named pipe and get the username with the function NpGetUsername. 
+
+![esquema](https://github.com/ricardojoserf/ricardojoserf.github.io/blob/master/images/whoamialternatives/NamedPipe_esquema.png?raw=true)
+
+![img](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/whoamialternatives/Screenshot_4.png)
+
+
+### Source
+
+[vx-underground's Twitter account](https://twitter.com/vxunderground)
