@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 
 namespace NamedPipe
@@ -15,8 +15,9 @@ namespace NamedPipe
         [DllImport("kernel32.dll")] static extern bool ConnectNamedPipe(IntPtr hNamedPipe, IntPtr lpOverlapped);
         [DllImport("kernel32.dll", SetLastError = true)] static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)] public static extern IntPtr CreateFile(string lpFileName, uint dwDesiredAccess, uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, IntPtr hTemplateFile);
-        [DllImport("kernel32.dll", SetLastError = true)] unsafe static extern int WriteFile(IntPtr handle, char* buffer, int numBytesToWrite, out uint numBytesWritten, Boolean lpOverlapped);
-        [DllImport("kernel32.dll", SetLastError = true)] unsafe static extern int ReadFile(IntPtr hFile, IntPtr lpBuffer, uint nNumberOfBytesToRead, out uint lpNumberOfBytesRead, IntPtr lpOverlapped);
+        // [DllImport("kernel32.dll", SetLastError = true)] unsafe static extern int WriteFile(IntPtr handle, char* buffer, int numBytesToWrite, out uint numBytesWritten, Boolean lpOverlapped);
+        [DllImport("kernel32.dll", SetLastError = true)] static extern int WriteFile(IntPtr handle, IntPtr buffer, int numBytesToWrite, out uint numBytesWritten, Boolean lpOverlapped);
+        [DllImport("kernel32.dll", SetLastError = true)] static extern int ReadFile(IntPtr hFile, IntPtr lpBuffer, uint nNumberOfBytesToRead, out uint lpNumberOfBytesRead, IntPtr lpOverlapped);
         [DllImport("kernel32.dll", SetLastError = true)] static extern bool CloseHandle(IntPtr hObject);
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.Winapi, SetLastError = true)] static extern IntPtr GetProcessHeap();
         [DllImport("ntdll.dll", SetLastError = true)] static extern IntPtr RtlAllocateHeap(IntPtr HeapHandle, int Flags, int Size);
@@ -33,29 +34,34 @@ namespace NamedPipe
         static uint OPEN_EXISTING = 3;
         static int test_string_size = 5;
         static uint MAX_USERNAME_LENGTH = 256;
+        static string pipe_name = "\\\\.\\pipe\\LOCAL\\usernamepipe";
 
         public static void writeFile()
         {
             // Open handle to named pipe
-            IntPtr hPipe = CreateFile("\\\\.\\pipe\\LOCAL\\usernamepipe", GENERIC_READ | GENERIC_WRITE, 0, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
-            Console.WriteLine("[+] Named pipe (CreateFile): \t0x{0}", hPipe);
+            IntPtr hPipe = CreateFile(pipe_name, GENERIC_READ | GENERIC_WRITE, 0, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
+            Console.WriteLine("[+] Handle (CreateFile): \t0x{0}", hPipe);
+            if (hPipe == IntPtr.Zero)
+            {
+                Console.WriteLine("[-] Failure calling CreateFile, try again.");
+                System.Environment.Exit(-1);
+            }
 
             // WriteFile
+            uint numBytes = 0;
+            int response_code = 0;
+            var buffer = new byte[] { 0x41, 0x0, 0x42, 0x0, 0x43, 0x0, 0x44, 0x0, 0x45, 0x0 }; // ABCDE
+            IntPtr addr = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0);
             try
             {
-                string str = "Test";
-                unsafe
-                {
-                    fixed (char* ptr = str)
-                    {
-                        uint numBytes = 0;
-                        int res = WriteFile(hPipe, ptr, test_string_size * 2, out numBytes, false);
-                        Console.WriteLine("[+] WriteFile response code: \t{0}", res);
-                        Console.WriteLine("[+] Number of written bytes: \t{0}", numBytes);
-                    }
-                }
+                response_code = WriteFile(hPipe, addr, test_string_size * 2, out numBytes, false);
             }
             catch (Exception e)
+            {
+                Console.WriteLine("[-] Failure calling WriteFile. Exception: {0}", e.ToString());
+                System.Environment.Exit(-1);
+            }
+            if (response_code == 0)
             {
                 Console.WriteLine("[-] Failure calling WriteFile, try again.");
                 System.Environment.Exit(-1);
@@ -70,43 +76,55 @@ namespace NamedPipe
         static void Main(string[] args)
         {
             // CreateNamedPipe
-            IntPtr hNamedPipe = CreateNamedPipe("\\\\.\\pipe\\LOCAL\\usernamepipe", PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 256, 256, 0, IntPtr.Zero);
-            Console.WriteLine("[+] Named pipe handle: \t\t0x{0}", hNamedPipe.ToString("X"));
+            IntPtr hNamedPipe = CreateNamedPipe(pipe_name, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 256, 256, 0, IntPtr.Zero);
+            Console.WriteLine("[+] Handle (CreateNamedPipe): \t0x{0}", hNamedPipe.ToString("X"));
+            if (hNamedPipe == IntPtr.Zero)
+            {
+                Console.WriteLine("[-] Failure calling CreateNamedPipe.");
+                System.Environment.Exit(-1);
+            }
 
             // CreateThread
             IntPtr hThread = CreateThread(IntPtr.Zero, 0, new ThreadStart(Program.writeFile), hNamedPipe, 0, IntPtr.Zero);
-            Console.WriteLine("[+] CreateThread handle: \t0x{0}", hThread.ToString("X"));
+            Console.WriteLine("[+] Handle (CreateThread): \t0x{0}", hThread.ToString("X"));
+            if (hThread == IntPtr.Zero)
+            {
+                Console.WriteLine("[-] Failure calling CreateThread.");
+                System.Environment.Exit(-1);
+            }
 
             // ConnectNamedPipe
             bool connected = ConnectNamedPipe(hNamedPipe, IntPtr.Zero);
-            Console.WriteLine("[+] Named Pipe connected: \t{0}", connected);
+            Console.WriteLine("[+] Named Pipe Connected: \t{0}", connected);
 
             // WaitForSingleObject
             WaitForSingleObject(hThread, 1000);
 
-            // Allocate memory with correct size + ReadFile
+            // Allocate memory with correct size
             IntPtr Handle = GetProcessHeap();
             int HEAP_ZERO_MEMORY = 0x00000008;
             IntPtr allocated_address = RtlAllocateHeap(Handle, HEAP_ZERO_MEMORY, test_string_size * 2);
+            
+            // ReadFile
             uint numBytes = 0;
-            int res = ReadFile(hNamedPipe, allocated_address, (uint)test_string_size * 2, out numBytes, IntPtr.Zero);
-            Console.WriteLine("[+] ReadFile response code: \t{0}", res);
-            Console.WriteLine("[+] Number of read bytes: \t{0}", numBytes);
-            Console.WriteLine("[+] Allocated Address:\t\t0x{0}", allocated_address.ToString("X"));
-
+            int response_code = ReadFile(hNamedPipe, allocated_address, (uint)test_string_size * 2, out numBytes, IntPtr.Zero);
+            if (response_code == 0) {
+                Console.WriteLine("[-] Failure calling ReadFile, try again.");
+                System.Environment.Exit(-1);
+            }
+            
             // ReadFile - Result
             byte[] data = new byte[test_string_size * 2];
             ReadProcessMemory(Process.GetCurrentProcess().Handle, allocated_address, data, data.Length, out _);
             String environment_vars = Encoding.Unicode.GetString(data);
             Console.WriteLine("[+] String from named pipe: \t{0}", environment_vars);
 
-            // Allocate memory with correct size
-            //Handle = GetProcessHeap();
+            // NpGetUserName
             allocated_address = RtlAllocateHeap(Handle, HEAP_ZERO_MEMORY, (int)MAX_USERNAME_LENGTH);
             NpGetUserName(hNamedPipe, allocated_address, MAX_USERNAME_LENGTH);
-            Console.WriteLine("[+] UserName Pointer: \t\t0x{0}", allocated_address.ToString("X"));
+            Console.WriteLine("[+] Pointer \"UserName\": \t0x{0}", allocated_address.ToString("X"));
 
-            // ReadFile - Result
+            // NpGetUserName - Result
             data = new byte[(int)MAX_USERNAME_LENGTH * 2];
             ReadProcessMemory(Process.GetCurrentProcess().Handle, allocated_address, data, data.Length, out _);
             String username = Encoding.Unicode.GetString(data);
