@@ -15,7 +15,6 @@ namespace NamedPipe
         [DllImport("kernel32.dll")] static extern bool ConnectNamedPipe(IntPtr hNamedPipe, IntPtr lpOverlapped);
         [DllImport("kernel32.dll", SetLastError = true)] static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)] public static extern IntPtr CreateFile(string lpFileName, uint dwDesiredAccess, uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, IntPtr hTemplateFile);
-        // [DllImport("kernel32.dll", SetLastError = true)] unsafe static extern int WriteFile(IntPtr handle, char* buffer, int numBytesToWrite, out uint numBytesWritten, Boolean lpOverlapped);
         [DllImport("kernel32.dll", SetLastError = true)] static extern int WriteFile(IntPtr handle, IntPtr buffer, int numBytesToWrite, out uint numBytesWritten, Boolean lpOverlapped);
         [DllImport("kernel32.dll", SetLastError = true)] static extern int ReadFile(IntPtr hFile, IntPtr lpBuffer, uint nNumberOfBytesToRead, out uint lpNumberOfBytesRead, IntPtr lpOverlapped);
         [DllImport("kernel32.dll", SetLastError = true)] static extern bool CloseHandle(IntPtr hObject);
@@ -24,6 +23,7 @@ namespace NamedPipe
         [DllImport("kernel32.dll", SetLastError = true)] static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int dwSize, out IntPtr lpNumberOfBytesRead);
         [DllImport("kernel32.dll", SetLastError = true)] static extern bool DisconnectNamedPipe(IntPtr hNamedPipe);
 
+        static int HEAP_ZERO_MEMORY = 0x00000008;
         static uint PIPE_ACCESS_DUPLEX = 0x00000003;
         static uint PIPE_TYPE_MESSAGE = 0x00000004;
         static uint PIPE_READMODE_MESSAGE = 0x00000002;
@@ -35,6 +35,7 @@ namespace NamedPipe
         static int test_string_size = 5;
         static uint MAX_USERNAME_LENGTH = 256;
         static string pipe_name = "\\\\.\\pipe\\LOCAL\\usernamepipe";
+
 
         public static void writeFile()
         {
@@ -102,7 +103,6 @@ namespace NamedPipe
 
             // Allocate memory with correct size
             IntPtr Handle = GetProcessHeap();
-            int HEAP_ZERO_MEMORY = 0x00000008;
             IntPtr allocated_address = RtlAllocateHeap(Handle, HEAP_ZERO_MEMORY, test_string_size * 2);
             
             // ReadFile
