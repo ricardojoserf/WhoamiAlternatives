@@ -59,7 +59,7 @@ Get acccess to a token and a Policy object and get the username with the functio
 
 ## Method 4: NamedPipe
 
-Create a named pipe and a secondary thread, write and read from the named pipe and get the username with the function NpGetUsername. 
+Create a named pipe and a secondary thread, write and read from the named pipe and get the username from the undocumented function NpGetUsername. 
 
 ![esquema](https://github.com/ricardojoserf/ricardojoserf.github.io/blob/master/images/whoamialternatives/NamedPipe_esquema.png?raw=true)
 
@@ -69,7 +69,7 @@ Create a named pipe and a secondary thread, write and read from the named pipe a
 
 ## Method 5: ADSystemInfo
 
-Get username if the computer is domain joined using the CoCreateInstance function. It uses the class ADSystemInfoClass and the interfaces ADSystemInfo and IADsADSystemInfo from ActiveDS.dll, which are already in the project folder so you don't need the DLL.
+Get username if the computer is domain joined using the [CoCreateInstance](https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-cocreateinstance) function as in [MSDN example](https://learn.microsoft.com/es-es/windows/win32/api/iads/nn-iads-iadsadsysteminfo). It uses the class ADSystemInfoClass and the interfaces ADSystemInfo and IADsADSystemInfo from ActiveDS.dll, which are already in the project folder so you don't need the DLL.
 
 If there is no connection with the AD:
 
