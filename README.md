@@ -67,6 +67,20 @@ Create a named pipe and a secondary thread, write and read from the named pipe a
 
 ------------------------------------------------
 
+## Method 5: ADSystemInfo
+
+Get username if the computer is domain joined using the CoCreateInstance function. It uses the class ADSystemInfoClass and the interfaces ADSystemInfo and IADsADSystemInfo from ActiveDS.dll, which are already in the project folder so you don't need the DLL.
+
+If there is no connection with the AD:
+
+![img](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/whoamialternatives/Screenshot_5.png)
+
+If there is connection:
+
+![img](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/whoamialternatives/Screenshot_6.png)
+
+------------------------------------------------
+
 ### Source
 
 [vx-underground's Twitter account](https://twitter.com/vxunderground)
