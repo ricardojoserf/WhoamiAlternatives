@@ -15,7 +15,7 @@ Get the environment variables from the PEB structure and parse it to find the us
 
 - From that structure you can get a pointer "Environment" to the environment variables and a pointer "EnvironmentSize" to the size of the environment variables.
 
-- Reading the number of bytes indicated in "EnvironmentSize" from the address "Environment" as UNICODE text, parse the environment variables and print the one called "USERNAME"
+- Reading the number of bytes indicated in "EnvironmentSize" from the address "Environment" as UNICODE text, parse the environment variables and print the one called "USERNAME". If you want all the env variables, check [this repository](https://github.com/ricardojoserf/StealthyEnv)
 
 ![esquema](https://raw.githubusercontent.com/ricardojoserf/ricardojoserf.github.io/master/images/stealthyenv/Screenshot_0.png)
 
