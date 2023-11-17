@@ -43,7 +43,7 @@ Get access to a token, find the user's SID in string format and translate it usi
 
 ## Method 3: LsaLookupSids
 
-Get acccess to a token and a Policy object and get the username with the function LsaLookupSids. 
+Get access to a token and a Policy object and get the username with the function LsaLookupSids. 
 
 - Functions NtOpenProcessToken and NtQueryInformationToken are used like in method 2, return a pointer "TokenInformation" with the user's SID in binary format. 
 
