@@ -8,7 +8,7 @@ namespace PRTL_USER_PROCESS_PARAMETERS
     internal class Program
     {
         [DllImport("ntdll.dll", SetLastError = true)] static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass, ref PROCESS_BASIC_INFORMATION pbi, uint processInformationLength, ref uint returnLength);
-        [DllImport("kernel32.dll", SetLastError = true)] static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int dwSize, out IntPtr lpNumberOfBytesRead);
+        [DllImport("ntdll.dll", SetLastError = true)] static extern bool NtReadVirtualMemory(IntPtr hProcess, IntPtr lpBaseAddress, [Out] byte[] lpBuffer, int dwSize, out IntPtr lpNumberOfBytesRead);
         private struct PROCESS_BASIC_INFORMATION { public uint ExitStatus; public IntPtr PebBaseAddress; public UIntPtr AffinityMask; public int BasePriority; public UIntPtr UniqueProcessId; public UIntPtr InheritedFromUniqueProcessId; }
 
 
@@ -37,7 +37,7 @@ namespace PRTL_USER_PROCESS_PARAMETERS
 
             Console.WriteLine("[+] Result:");
             byte[] data = new byte[(int)environment_size];
-            ReadProcessMemory(hProcess, environment_start, data, data.Length, out _);   
+            NtReadVirtualMemory(hProcess, environment_start, data, data.Length, out _);   
             String environment_vars = Encoding.Unicode.GetString(data);
             int found = environment_vars.IndexOf("USERNAME=");
             String rest_String = environment_vars.Substring(found);
